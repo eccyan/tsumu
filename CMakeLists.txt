@@ -31,7 +31,7 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 set(TSUMU_SRC
-  tsumu/main.cc
+  src/main.cc
 )
 
 add_subdirectory(lib/fmt)
