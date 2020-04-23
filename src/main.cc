@@ -11,7 +11,13 @@
 int main(int argc, char** argv) {
   int port = 8080;
   if (argc > 1) {
-    port = std::stoi(argv[0]);
+    try {
+      port = std::stoi(argv[1]);
+    }
+    catch (const std::exception& e) {
+      std::cerr << fmt::format("Error port: {0}, {1}", argv[1], e.what()) << std::endl;
+      exit(EXIT_FAILURE);
+    }
   }
   std::cout << "Welcome to tsumu !" << std::endl;
 
@@ -60,7 +66,7 @@ int main(int argc, char** argv) {
     exit(EXIT_FAILURE);
   }
   const std::string recv_message = readbuf;
-  std::cerr << format("Received: {0}", recv_message) << std::endl;
+  std::cerr << fmt::format("Received: {0}", recv_message) << std::endl;
 
   const std::string send_message = fmt::format("You say '{0}'", recv_message);
   send(socket, send_message.c_str(), send_message.size(), 0);
