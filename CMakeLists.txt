@@ -10,6 +10,8 @@ project(tsumu
   LANGUAGES CXX
 )
 
+include(ExternalProject)
+
 set(CMAKE_VERBOSE_MAKEFILE TRUE)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
@@ -32,21 +34,33 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-long-long -pedantic")
 endif()
 
+set(EXTERNAL_DIR ${PROJECT_SOURCE_DIR}/external)
+
+# fmt
+ExternalProject_Add(
+  fmt_dep
+  GIT_REPOSITORY https://github.com/fmtlib/fmt
+  PREFIX ${EXTERNAL_DIR}/fmt
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_DIR}/build
+)
+
+add_library(fmt STATIC IMPORTED)
+set_property(
+  TARGET fmt PROPERTY IMPORTED_LOCATION
+  ${EXTERNAL_DIR}/build/lib/libfmt.a
+)
+include_directories(
+  ${EXTERNAL_DIR}/build/include
+)
+
+# main
 set(TSUMU_SRC
   src/main.cc
 )
 
-add_subdirectory(lib/fmt)
-
-include_directories(
-  ${PROJECT_SOURCE_DIR}/lib/fmt/include
-)
-link_directories(
-  ${PROJECT_SOURCE_DIR}/lib/fmt
-)
-
 add_executable(${PROJECT_NAME} ${TSUMU_SRC})
+add_dependencies(${PROJECT_NAME} fmt_dep)
 target_link_libraries(
   ${PROJECT_NAME}
-  libfmt.a
+  fmt
 )
