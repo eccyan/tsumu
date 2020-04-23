@@ -4,12 +4,13 @@ if(CMAKE_MAJOR_VERSION LESS 3)
     message(WARNING "Building with CMake 3.0 or higher is strongly suggested; current version is ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}")
 endif()
 
+set(PROJECT_VERSION "1.0.0")
 project(tsumu
   VERSION ${PROJECT_VERSION}
   LANGUAGES CXX
 )
 
-set(PROJECT_VERSION "1.0.0")
+set(CMAKE_VERBOSE_MAKEFILE TRUE)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -35,4 +36,16 @@ set(TSUMU_SRC
 )
 
 add_subdirectory(lib/fmt)
+
+include_directories(
+  ${PROJECT_SOURCE_DIR}/lib/fmt/include
+)
+link_directories(
+  ${PROJECT_SOURCE_DIR}/lib/fmt
+)
+
 add_executable(${PROJECT_NAME} ${TSUMU_SRC})
+target_link_libraries(
+  ${PROJECT_NAME}
+  libfmt.a
+)
