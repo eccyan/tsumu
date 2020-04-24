@@ -41,16 +41,16 @@ ExternalProject_Add(
   fmt_dep
   GIT_REPOSITORY https://github.com/fmtlib/fmt
   PREFIX ${EXTERNAL_DIR}/fmt
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_DIR}/build
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_DIR}/fmt
 )
 
 add_library(fmt STATIC IMPORTED)
 set_property(
   TARGET fmt PROPERTY IMPORTED_LOCATION
-  ${EXTERNAL_DIR}/build/lib/libfmt.a
+  ${EXTERNAL_DIR}/fmt/lib/libfmt.a
 )
 include_directories(
-  ${EXTERNAL_DIR}/build/include
+  ${EXTERNAL_DIR}/fmt/include
 )
 
 # main
