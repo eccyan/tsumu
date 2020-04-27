@@ -68,6 +68,16 @@ int socket::listen(int backlog) noexcept {
   return 0;
 }
 
+int socket::accept() noexcept {
+  socklen_t addrlen = sizeof(*_addr.get());
+  int server_socket_fd = ::accept(_fd, (struct sockaddr *)_addr.get(), &addrlen);
+  if (server_socket_fd == -1) {
+    return -1;
+  }
+
+  return server_socket_fd;
+}
+
 std::tuple<std::unique_ptr<socket>, int>
 socket_factory::make_socket(in_port_t port) noexcept {
   const int fd = ::socket(_socket_family, _socket_type, _protocol);

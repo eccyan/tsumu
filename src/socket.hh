@@ -36,6 +36,8 @@ public:
 
   int listen(int backlog) noexcept;
 
+  int accept() noexcept;
+
 private:
   int _fd;
   in_port_t _port;
