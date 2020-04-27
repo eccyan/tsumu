@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <unistd.h>
 #include <cerrno>
 #include <tuple>
@@ -43,8 +44,8 @@ public:
   int accept() noexcept;
 
 private:
-  int _fd;
   in_port_t _port;
+  int _fd;
   std::shared_ptr<struct sockaddr> _addr;
 };
 
