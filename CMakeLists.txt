@@ -57,6 +57,7 @@ include_directories(
 # main
 set(TSUMU_SRC
   src/main.cc
+  src/socket.cc
 )
 
 add_executable(${PROJECT_NAME} ${TSUMU_SRC})
