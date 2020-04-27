@@ -10,6 +10,10 @@
 
 namespace tsumu {
 
+// TODO: Separate socket by meaning
+class listing_socket;
+class sever_socket;
+
 class socket {
 public:
   socket(in_port_t port, int fd) noexcept
