@@ -52,7 +52,7 @@ public:
   }
 
   std::tuple<std::unique_ptr<socket>, int>
-  make_socket(in_port_t port);
+  make_socket(in_port_t port) noexcept;
 
 private:
   int _socket_family;
