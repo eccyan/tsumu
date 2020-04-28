@@ -30,10 +30,10 @@ public:
   }
 
   template <class X>
-  int setsockopt(int level, int option_name, X&& option_value) {
+  socket setsockopt(int level, int option_name, X&& option_value) {
     auto ret = ::setsockopt(_fd, level, option_name, &option_value, sizeof(option_value));
     throw_system_error_on(ret == -1, "setsockopt");
-    return ret;
+    return socket(std::move(*this));
   }
 
   socket bind(const struct sockaddr * const addr, socklen_t addrlen) {
