@@ -11,61 +11,59 @@
 
 namespace tsumu {
 
-// TODO: Separate socket by meaning
-class listing_socket;
-class sever_socket;
+inline void throw_system_error_on(bool condition, const char* what_arg = "");
 
 class socket {
-public:
-  socket(in_port_t port, int fd) noexcept
-    :_port(port), _fd(fd), _addr(nullptr)
-  {
-  }
-
-  ~socket();
-
-  int fd() noexcept {
-    return _fd;
-  }
-
-  std::shared_ptr<struct sockaddr> address() noexcept {
-    return _addr;
-  }
-
-  int configure(int level, int option_name,
-      void *option_value, socklen_t option_len) noexcept;
-
-  int bind(const struct sockaddr *addr, socklen_t addrlen) noexcept;
-
-  int configure_and_bind_tcp() noexcept;
-
-  int listen(int backlog) noexcept;
-
-  int accept() noexcept;
-
-private:
-  in_port_t _port;
   int _fd;
-  std::shared_ptr<struct sockaddr> _addr;
-};
-
-class socket_factory {
 public:
-  socket_factory(int socket_family, int socket_type,
-      int protocol) noexcept
-    :_socket_family(socket_family), _socket_type(socket_type),
-    _protocol(protocol)
-  {
+  socket() = delete;
+  socket(socket const &) = delete;
+  socket(socket&& x) : _fd(x._fd) { x._fd = -1; }
+  ~socket() { if (_fd != -1) { ::close(_fd); } }
+
+  int fd() const { return _fd; }
+
+  static socket make(int socket_family, int socket_type, int protocol) {
+    int fd = ::socket(socket_family, socket_type, protocol);
+    throw_system_error_on(fd == -1, "socket");
+    return socket(fd);
   }
 
-  std::tuple<std::unique_ptr<socket>, int>
-  make_socket(in_port_t port) noexcept;
+  template <class X>
+  int setsockopt(int level, int option_name, X&& option_value) {
+    auto ret = ::setsockopt(_fd, level, option_name, &option_value, sizeof(option_value));
+    throw_system_error_on(ret == -1, "setsockopt");
+    return ret;
+  }
+
+  socket bind(const struct sockaddr * const addr, socklen_t addrlen) {
+    auto ret = ::bind(_fd, addr, addrlen);
+    throw_system_error_on(ret == -1, "bind");
+    return socket(std::move(*this));
+  }
+
+  socket listen(int backlog) {
+    auto ret = ::listen(_fd, backlog);
+    throw_system_error_on(ret == -1, "accept");
+    return socket(std::move(*this));
+  }
+
+  socket const accept(struct sockaddr * const addr, socklen_t& addrlen) {
+    auto fd = ::accept(_fd, addr, &addrlen);
+    throw_system_error_on(fd == -1, "accept");
+    return socket(std::move(*this));
+  }
 
 private:
-  int _socket_family;
-  int _socket_type;
-  int _protocol;
+  socket(int fd) :_fd(fd) { }
 };
+
+inline
+void throw_system_error_on(bool condition, const char* what_arg) {
+  if (condition) {
+    throw std::system_error(errno, std::system_category(), what_arg);
+  }
+}
 
 
 }

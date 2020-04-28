@@ -23,21 +23,24 @@ int main(int argc, char** argv) {
   }
   std::cout << "Welcome to tsumu !" << std::endl;
 
-  auto socket_factory = std::unique_ptr<tsumu::socket_factory>(new tsumu::socket_factory(AF_INET, SOCK_STREAM, 0));
-  auto [ sock, err ] = socket_factory->make_socket(port);
 
-  sock->configure_and_bind_tcp();
-  sock->listen(3);
+  auto listen_sock = tsumu::socket::make(AF_INET, SOCK_STREAM, 0);
 
-  const int socket = sock->accept();
-  if (socket == -1)
-  {
-    std::cerr << fmt::format("Error accept socket: {0}", strerror(errno)) << std::endl;
-    exit(EXIT_FAILURE);
-  }
+  int opt = 1;
+  listen_sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, opt);
+
+  struct sockaddr_in addr = {};
+  socklen_t addrlen = sizeof(addr);
+  addr.sin_family = AF_INET;
+  addr.sin_addr.s_addr = INADDR_ANY;
+  addr.sin_port = htons(port);
+  auto server_sock = listen_sock
+    .bind(reinterpret_cast<struct sockaddr *>(&addr), sizeof(addr))
+    .listen(3)
+    .accept(reinterpret_cast<struct sockaddr *>(&addr), addrlen);
 
   char readbuf[1024] = {0};
-  const int read_size = read(socket, readbuf, 1024);
+  const int read_size = read(server_sock.fd(), readbuf, 1024);
   if (read_size == -1)
   {
     std::cerr << fmt::format("Error read socket: {0}", strerror(errno)) << std::endl;
@@ -47,7 +50,7 @@ int main(int argc, char** argv) {
   std::cerr << fmt::format("Received: {0}", recv_message) << std::endl;
 
   const std::string send_message = fmt::format("You say '{0}'", recv_message);
-  send(socket, send_message.c_str(), send_message.size(), 0);
+  send(server_sock.fd(), send_message.c_str(), send_message.size(), 0);
   std::cerr << fmt::format("Sent message: {0}", send_message) << std::endl;
 
   return 0;
