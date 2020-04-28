@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <cerrno>
 #include <tuple>
+#include <optional>
 #include <memory>
 #include <iostream>
 #include <fmt/format.h>
@@ -44,14 +45,32 @@ public:
 
   socket listen(int backlog) {
     auto ret = ::listen(_fd, backlog);
-    throw_system_error_on(ret == -1, "accept");
+    throw_system_error_on(ret == -1, "listen");
     return socket(std::move(*this));
   }
 
-  socket const accept(struct sockaddr * const addr, socklen_t& addrlen) {
+  socket accept(struct sockaddr * const addr, socklen_t& addrlen) {
     auto fd = ::accept(_fd, addr, &addrlen);
     throw_system_error_on(fd == -1, "accept");
-    return socket(std::move(*this));
+    return socket(fd);
+  }
+
+  std::optional<size_t> read(void* buffer, size_t len) {
+    auto ret = ::read(_fd, buffer, len);
+    if (ret == -1 && errno == EAGAIN) {
+      return {};
+    }
+    throw_system_error_on(ret == -1, "read");
+    return { size_t(ret) };
+  }
+
+  std::optional<size_t> send(const void* const buffer, size_t len, int flags) {
+    auto ret = ::send(_fd, buffer, len, flags);
+    if (ret == -1 && errno == EAGAIN) {
+      return {};
+    }
+    throw_system_error_on(ret == -1, "send");
+    return { size_t(ret) };
   }
 
 private:

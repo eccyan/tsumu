@@ -23,14 +23,11 @@ int main(int argc, char** argv) {
   }
   std::cout << "Welcome to tsumu !" << std::endl;
 
-
   int opt = 1;
-  struct sockaddr_in addr = {};
-
+  struct sockaddr_in addr = {0};
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = INADDR_ANY;
   addr.sin_port = htons(port);
-
   socklen_t addrlen = sizeof(addr);
   auto server_sock = tsumu::socket::make(AF_INET, SOCK_STREAM, 0)
     .setsockopt(SOL_SOCKET, SO_REUSEADDR, opt)
@@ -39,17 +36,11 @@ int main(int argc, char** argv) {
     .accept(reinterpret_cast<struct sockaddr *>(&addr), addrlen);
 
   char readbuf[1024] = {0};
-  const int read_size = read(server_sock.fd(), readbuf, 1024);
-  if (read_size == -1)
-  {
-    std::cerr << fmt::format("Error read socket: {0}", strerror(errno)) << std::endl;
-    exit(EXIT_FAILURE);
-  }
-  const std::string recv_message = readbuf;
-  std::cerr << fmt::format("Received: {0}", recv_message) << std::endl;
+  server_sock.read(readbuf, 1024);
+  std::cerr << fmt::format("Received: {0}", readbuf) << std::endl;
 
-  const std::string send_message = fmt::format("You say '{0}'", recv_message);
-  send(server_sock.fd(), send_message.c_str(), send_message.size(), 0);
+  const std::string send_message = fmt::format("You say '{0}'", readbuf);
+  server_sock.send(send_message.c_str(), send_message.size(), 0);
   std::cerr << fmt::format("Sent message: {0}", send_message) << std::endl;
 
   return 0;
