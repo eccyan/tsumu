@@ -24,16 +24,16 @@ int main(int argc, char** argv) {
   std::cout << "Welcome to tsumu !" << std::endl;
 
   int opt = 1;
-  struct sockaddr_in addr = {0};
-  addr.sin_family = AF_INET;
-  addr.sin_addr.s_addr = INADDR_ANY;
-  addr.sin_port = htons(port);
-  socklen_t addrlen = sizeof(addr);
+  struct ::sockaddr_in in = {0};
+  in.sin_family = AF_INET;
+  in.sin_addr.s_addr = INADDR_ANY;
+  in.sin_port = htons(port);
+  tsumu::socket_address addr = tsumu::socket_address(in);
   auto server_sock = tsumu::socket::make(AF_INET, SOCK_STREAM, 0)
     .setsockopt(SOL_SOCKET, SO_REUSEADDR, opt)
-    .bind(reinterpret_cast<struct sockaddr *>(&addr), sizeof(addr))
+    .bind(addr, addr.length)
     .listen(3)
-    .accept(reinterpret_cast<struct sockaddr *>(&addr), addrlen);
+    .accept(addr, addr.length);
 
   char readbuf[1024] = {0};
   server_sock.read(readbuf, 1024);

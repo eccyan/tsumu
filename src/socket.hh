@@ -1,7 +1,9 @@
 #pragma once
 
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <netinet/in.h>
+#include <netinet/ip.h>
 #include <unistd.h>
 #include <cerrno>
 #include <tuple>
@@ -12,7 +14,25 @@
 
 namespace tsumu {
 
-inline void throw_system_error_on(bool condition, const char* what_arg = "");
+class socket_address {
+public:
+  socklen_t length;
+  union {
+    ::sockaddr sa;
+    ::sockaddr_in in;
+    ::sockaddr_in6 in6;
+    ::sockaddr_un un;
+  } u;
+  socket_address(const sockaddr_in &sa) : length{sizeof(::sockaddr_in)} {
+    u.in = sa;
+  }
+  socket_address(const sockaddr_in6 &sa) : length{sizeof(::sockaddr_in6)} {
+    u.in6 = sa;
+  }
+  socket_address();
+};
+
+inline void throw_system_error_on(bool condition, const char *what_arg = "");
 
 class socket {
   int _fd;
@@ -37,8 +57,8 @@ public:
     return socket(std::move(*this));
   }
 
-  socket bind(const struct sockaddr * const addr, socklen_t addrlen) {
-    auto ret = ::bind(_fd, addr, addrlen);
+  socket bind(struct socket_address& addr, socklen_t addrlen) {
+    auto ret = ::bind(_fd, &addr.u.sa, addrlen);
     throw_system_error_on(ret == -1, "bind");
     return socket(std::move(*this));
   }
@@ -49,8 +69,8 @@ public:
     return socket(std::move(*this));
   }
 
-  socket accept(struct sockaddr * const addr, socklen_t& addrlen) {
-    auto fd = ::accept(_fd, addr, &addrlen);
+  socket accept(struct socket_address& addr, socklen_t& addrlen) {
+    auto fd = ::accept(_fd, &addr.u.sa, &addrlen);
     throw_system_error_on(fd == -1, "accept");
     return socket(fd);
   }
