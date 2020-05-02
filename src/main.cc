@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
   std::cout << "Welcome to tsumu !" << std::endl;
 
   int opt = 1;
-  struct ::sockaddr_in in = {0};
+  struct ::sockaddr_in in = {};
   in.sin_family = AF_INET;
   in.sin_addr.s_addr = INADDR_ANY;
   in.sin_port = htons(port);
